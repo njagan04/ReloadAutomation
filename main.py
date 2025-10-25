@@ -16,8 +16,8 @@ from alive_progress import alive_bar
 console = Console()
 
 # -------- Default Config --------
-DEFAULT_URL = "https://github.com/njagan04"
-DEFAULT_COUNT = 3
+DEFAULT_URL = input("Url : ")
+DEFAULT_COUNT = int(input("Reload count : "))
 DEFAULT_MIN_DELAY = 1.5
 DEFAULT_MAX_DELAY = 3.5
 DEFAULT_HEADLESS = False
