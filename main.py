@@ -2,7 +2,6 @@
 
 import time
 import random
-import logging
 import argparse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -25,11 +24,6 @@ DEFAULT_HEADLESS = False
 IMPLICIT_WAIT_SECONDS = 5
 # -------------------------------
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
-
 def make_driver(headless_mode: bool) -> webdriver.Chrome:
     chrome_opts = Options()
     if headless_mode:
@@ -43,7 +37,6 @@ def make_driver(headless_mode: bool) -> webdriver.Chrome:
     driver = webdriver.Chrome(service=service, options=chrome_opts)
     driver.implicitly_wait(IMPLICIT_WAIT_SECONDS)
     return driver
-
 
 def run_reload_loop(target_url: str, reload_count: int, delay_min: float, delay_max: float, headless: bool):
     console.print(Panel.fit(
@@ -65,44 +58,36 @@ def run_reload_loop(target_url: str, reload_count: int, delay_min: float, delay_
         with alive_bar(reload_count, bar='smooth', spinner='dots_waves', title='Reloading pages...', stats=False) as bar:
             for i in range(1, reload_count + 1):
                 delay = random.uniform(delay_min, delay_max)
-                logging.info(f"Reload #{i}: waiting {delay:.2f}s before reload.")
-                start_ts = time.time()
                 time.sleep(delay)
 
                 try:
                     driver.refresh()
-                    elapsed = time.time() - start_ts
-                    logging.info(f"Reload #{i}: refreshed successfully (took {elapsed:.2f}s).")
                     records.append((i, delay, True, "", time.strftime("%H:%M:%S")))
                 except Exception as e:
-                    logging.error(f"Reload #{i}: error during refresh: {e}")
                     records.append((i, delay, False, str(e), time.strftime("%H:%M:%S")))
 
+                bar.text(f"Reload {i}/{reload_count}")
                 bar()
 
-        console.print("\n[bold green]All reloads completed.[/bold green]\n")
-
-        # Display summary table
-        table = Table(title="Reload Summary", box=box.SIMPLE_HEAVY)
-        table.add_column("#", justify="right", style="cyan")
+        # Display summary table in a nice panel
+        table = Table(show_header=True, header_style="bold white", box=box.ROUNDED)
+        table.add_column("#", justify="center", style="cyan")
         table.add_column("Time", justify="center", style="white")
-        table.add_column("Delay (s)", justify="right")
-        table.add_column("Status", style="green")
-        table.add_column("Error", style="red")
+        table.add_column("Delay (s)", justify="center")
+        table.add_column("Status", justify="center", style="green")
+        table.add_column("Error", justify="center", style="red")
 
         for i, delay, ok, err, ts in records:
             table.add_row(str(i), ts, f"{delay:.2f}", "[green]OK[/green]" if ok else "[red]FAIL[/red]", err or "-")
 
-        console.print(table)
+        console.print(Panel(table, title="[bold green]Reload Summary[/bold green]", border_style="cyan"))
 
     except Exception as e:
         console.print(f"[bold red]Fatal error:[/bold red] {e}")
-        logging.exception("Fatal error: %s", e)
     finally:
         if driver:
             driver.quit()
         console.print("[dim]Browser closed. Exiting.[/dim]")
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Reload automation with pretty terminal output.")
@@ -113,12 +98,9 @@ def parse_args():
     parser.add_argument("--headless", action="store_true", help="Run browser in headless mode.")
     return parser.parse_args()
 
-
 def main():
     args = parse_args()
     run_reload_loop(args.url, args.count, args.min_delay, args.max_delay, args.headless)
 
-
 if __name__ == "__main__":
     main()
-   
