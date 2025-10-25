@@ -17,7 +17,7 @@ console = Console()
 
 # -------- Default Config --------
 DEFAULT_URL = "https://github.com/njagan04"
-DEFAULT_COUNT = 10
+DEFAULT_COUNT = 3
 DEFAULT_MIN_DELAY = 1.5
 DEFAULT_MAX_DELAY = 3.5
 DEFAULT_HEADLESS = False
@@ -55,7 +55,7 @@ def run_reload_loop(target_url: str, reload_count: int, delay_min: float, delay_
         driver.get(target_url)
         console.print("[green]Initial page load successful.[/green]\n")
 
-        with alive_bar(reload_count, bar='smooth', spinner='dots_waves', title='Reloading pages...', stats=False) as bar:
+        with alive_bar(reload_count, bar='smooth', spinner='classic', stats=False) as bar:
             for i in range(1, reload_count + 1):
                 delay = random.uniform(delay_min, delay_max)
                 time.sleep(delay)
@@ -66,10 +66,9 @@ def run_reload_loop(target_url: str, reload_count: int, delay_min: float, delay_
                 except Exception as e:
                     records.append((i, delay, False, str(e), time.strftime("%H:%M:%S")))
 
-                bar.text(f"Reload {i}/{reload_count}")
+                bar.text(f"-> Reload {i}/{reload_count}")
                 bar()
 
-        # Display summary table in a nice panel
         table = Table(show_header=True, header_style="bold white", box=box.ROUNDED)
         table.add_column("#", justify="center", style="cyan")
         table.add_column("Time", justify="center", style="white")
